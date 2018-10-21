@@ -67,20 +67,21 @@ def svm_loss_vectorized(W, X, y, reg):
   """
   loss = 0.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
-  num_train = W.shape[1]
-  num_classes X.shape[0]
+  num_classes = W.shape[1]
+  num_train = X.shape[0]
 
   #############################################################################
   # TODO:                                                                     #
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  scores = X.dot(W)
-  correct_scores = scores[range(num_train), y].reshape(num_train, -1)
+  scores = X.dot(W) # X:(500,3073) W:(3073,10) scores:(500,10)
+  correct_scores = scores[list(range(num_train)), y]
+  correct_scores = correct_scores.reshape(num_train, -1) #correct_scores:(500,1)
   scores = scores - correct_scores + 1
-  s[range(num_train), y] = 0
+  scores[list(range(num_train)), y] = 0
   loss = np.sum(np.fmax(scores, 0)) / num_train
-  loss += reg * np.sum(W * W)
+  loss = loss + reg * np.sum(W * W)
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -98,6 +99,9 @@ def svm_loss_vectorized(W, X, y, reg):
   X_mask = np.zeros(scores.shape)
   X_mask[scores > 0] = 1
   X_mask[np.arange(num_train), y] = -np.sum(X_mask, axis=1)
+  dW = X.T.dot(X_mask)
+  dW /= num_train
+  dW += 2 * reg * W
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
